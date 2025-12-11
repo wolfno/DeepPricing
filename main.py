@@ -34,6 +34,7 @@ import tensorflow as tf
 # Local imports
 from src.asset_classes import Stock, CallOption, PutOption
 from src.math_models import stock_path, option_path
+from src.decorators import timer
 
 
 # GOAL: Find the price of a stock by training a Neural Network
@@ -145,9 +146,12 @@ X_test, y_test = df_model.iloc[800:, 1:option_count+1], df_model.iloc[800:, -1]
 # Fitting the model to the first 80 % of intraday price data
 # Note: Model knows nothing of the option parameters but the price!
 deep_model.compile(optimizer='adam', loss='mse')
-history = deep_model.fit(X_train, y_train,
-                         epochs=50, batch_size=32,
-                         validation_split=0.2)
+
+# Wrap this in a function to measure the time
+@timer
+def model_fit():
+    return deep_model.fit(X_train, y_train, epochs=50, batch_size=32, validation_split=0.2)
+model_fit()
 
 # Measuring the error on the remaining 20 % of the day
 loss = deep_model.evaluate(X_test, y_test)
